@@ -27,7 +27,7 @@ def compress_image(file_location):
     img.save(img_io, "JPEG", quality=50)
 
     # Save the compressed image to a new file
-    compressed_file_location = file_location.split(".")[0] + "_compressed.jpg"
+    compressed_file_location = file_location.split(".")[0] + "_compressed.jpeg"
     with open(compressed_file_location, "wb") as f:
         f.write(img_io.getvalue())
 
@@ -49,7 +49,9 @@ def upload():
 
         f = request.files.get("file")
         # something.jpg >> ["something", "jpg"]
-        filename, extension = f.filename.split(".")
+        filename = f.filename.split(".")
+        filename = filename[0]
+        extension = filename [-1]
         generated_filename = secrets.token_hex(20) + f".{extension}"
 
         file_location = os.path.join(app.config["UPLOADED_PATH"], generated_filename)
@@ -128,7 +130,7 @@ def decoded():
             title="Translations",
             form=form,
             audio=True,
-            file=generated_audio_filename,
+            file=compressed_audio_filename,
         )
 
     else:
