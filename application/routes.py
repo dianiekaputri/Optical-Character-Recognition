@@ -125,12 +125,38 @@ def decoded():
         command = 'ffmpeg -i {} -c:a aac -b:a 24k {}'.format(file_location, compressed_file_location)
         sp.run(command, shell=True)
         
+        # Generate slow audio
+        slow_audio_filename = compressed_audio_filename.split(".")[0] + "_slow.m4a"
+        slow_file_location = os.path.join(app.config["AUDIO_FILE_UPLOAD"], slow_audio_filename)
+        slow_command = 'ffmpeg -i {} -filter:a "atempo=0.7" {}'.format(compressed_file_location, slow_file_location)
+        sp.run(slow_command, shell=True)
+        
+        # Apply equalizer to the slow audio
+        equalized_audio_filename = slow_audio_filename.split(".")[0] + "_equalized.m4a"
+        equalized_file_location = os.path.join(app.config["AUDIO_FILE_UPLOAD"], equalized_audio_filename)
+
+        # Run FFmpeg command for equalization
+        equalizer_command = 'ffmpeg -i {} -af "equalizer=f=1200:width_type=o:width=50:g=4" {}'.format(slow_file_location, equalized_file_location)
+        sp.run(equalizer_command, shell=True)
+        
+        # Apply pitch shift to the audio
+        pitch_shifted_audio_filename = equalized_audio_filename.split(".")[0] + "_pitch_shifted.m4a"
+        pitch_shifted_file_location = os.path.join(app.config["AUDIO_FILE_UPLOAD"], pitch_shifted_audio_filename)
+
+        # Run FFmpeg command for pitch shift
+        pitch_shift_command = 'ffmpeg -i {} -af "rubberband=pitch=2" {}'.format(equalized_file_location, pitch_shifted_file_location)
+        sp.run(pitch_shift_command, shell=True)
+
+
+            
         return render_template(
             "decoded.html",
             title="Translations",
             form=form,
             audio=True,
             file=compressed_audio_filename,
+            slow_file=slow_audio_filename,
+            equalized_file=pitch_shifted_audio_filename
         )
 
     else:
